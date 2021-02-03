@@ -68,87 +68,87 @@ def get_input_fastq_files(sample_name, r):
 
 
 ######################################   High-level targets   ######################################
-rule raw_read_data_symlinks:
+rule signal_raw_read_data_symlinks:
     input: expand('{sn}/raw_fastq/{sn}_R{r}.fastq.gz', sn=sample_names, r=[1,2])
 
-rule remove_adapters:
+rule signal_remove_adapters:
     input: expand('{sn}/adapter_trimmed/{sn}_R{r}_val_{r}.fq.gz', sn=sample_names, r=[1,2]),
            expand('{sn}/adapter_trimmed/{sn}_R{r}_val_{r}_posttrim_filter.fq.gz', sn=sample_names, r=[1,2]),
 
-rule host_removed_raw_reads:
+rule signal_host_removed_raw_reads:
     input: expand('{sn}/host_removal/{sn}_R{r}.fastq.gz', sn=sample_names, r=[1,2]),
 
-rule fastqc:
+rule signal_fastqc:
     input: expand('{sn}/raw_fastq/{sn}_R{r}_fastqc.html', sn=sample_names, r=[1,2]),
            expand('{sn}/adapter_trimmed/{sn}_R{r}_val_{r}_fastqc.html', sn=sample_names, r=[1,2]),
            expand('{sn}/mapped_clean_reads/{sn}_R{r}_fastqc.html', sn=sample_names, r=[1,2])
 
-rule clean_reads:
+rule signal_clean_reads:
     input:
        expand("{sn}/core/{sn}_viral_reference.mapping.primertrimmed.bam", sn=sample_names),
        expand('{sn}/mapped_clean_reads/{sn}_R{r}.fastq.gz', sn=sample_names, r=[1,2])
 
-rule consensus:
+rule signal_consensus:
     input: expand('{sn}/core/{sn}.consensus.fa', sn=sample_names)
 
-rule ivar_variants:
+rule signal_ivar_variants:
     input: expand('{sn}/core/{sn}_ivar_variants.tsv', sn=sample_names)
 
-rule breseq:
+rule signal_breseq:
     input: expand('{sn}/breseq/{sn}_output/index.html', sn=sample_names)
     
-rule coverage:
+rule signal_coverage:
     input: expand('{sn}/coverage/{sn}_depth.txt', sn=sample_names)
 
-rule coverage_plot:
+rule signal_coverage_plot:
     input: expand('{sn}/coverage/{sn}_coverage_plot.png', sn=sample_names)
 
-rule kraken2:
+rule signal_kraken2:
     input: expand('{sn}/kraken2/{sn}_kraken2.out', sn=sample_names)
 
-rule quast:
+rule signal_quast:
     input: expand('{sn}/quast/{sn}_quast_report.html', sn=sample_names)
 
-rule config_sample_log:
+rule signal_config_sample_log:
     input: 
         config_filename,
         config['samples']
 
 
 if config['run_breseq']:
-    rule all:
+    rule signal_all:
         input:
-            rules.raw_read_data_symlinks.input,
-            rules.host_removed_raw_reads.input,
-            rules.remove_adapters.input,
-            rules.fastqc.input,
-            rules.clean_reads.input,
-            rules.consensus.input,
-            rules.ivar_variants.input,
-            rules.coverage.input,
-            rules.coverage_plot.input,
-            rules.kraken2.input,
-            rules.quast.input,
-            rules.config_sample_log.input,
-            rules.breseq.input
+            rules.signal_raw_read_data_symlinks.input,
+            rules.signal_host_removed_raw_reads.input,
+            rules.signal_remove_adapters.input,
+            rules.signal_fastqc.input,
+            rules.signal_clean_reads.input,
+            rules.signal_consensus.input,
+            rules.signal_ivar_variants.input,
+            rules.signal_coverage.input,
+            rules.signal_coverage_plot.input,
+            rules.signal_kraken2.input,
+            rules.signal_quast.input,
+            rules.signal_config_sample_log.input,
+            rules.signal_breseq.input
 else:
-    rule all:
+    rule signal_all:
         input:
-            rules.raw_read_data_symlinks.input,
-            rules.host_removed_raw_reads.input,
-            rules.remove_adapters.input,
-            rules.fastqc.input,
-            rules.clean_reads.input,
-            rules.consensus.input,
-            rules.ivar_variants.input,
-            rules.coverage.input,
-            rules.coverage_plot.input,
-            rules.kraken2.input,
-            rules.quast.input,
-            rules.config_sample_log.input,
+            rules.signal_raw_read_data_symlinks.input,
+            rules.signal_host_removed_raw_reads.input,
+            rules.signal_remove_adapters.input,
+            rules.signal_fastqc.input,
+            rules.signal_clean_reads.input,
+            rules.signal_consensus.input,
+            rules.signal_ivar_variants.input,
+            rules.signal_coverage.input,
+            rules.signal_coverage_plot.input,
+            rules.signal_kraken2.input,
+            rules.signal_quast.input,
+            rules.signal_config_sample_log.input,
 
 
-rule postprocess:
+rule signal_postprocess:
     conda: 
         'conda_envs/postprocessing.yaml'
     params:
@@ -158,7 +158,7 @@ rule postprocess:
         '{params.postprocess_script_path} {params.sample_csv_filename}'
 
 
-rule ncov_tools:
+rule signal_ncov_tools:
     # can't use the one in the ncov-tool dir as it has to include snakemake
     conda:
         'ncov-tools/workflow/envs/environment.yml'
@@ -178,7 +178,7 @@ rule ncov_tools:
         
         
 ################################# Copy config and sample table to output folder ##################
-rule copy_config_sample_log:
+rule signal_copy_config_sample_log:
     output: 
         config = os.path.basename(config_filename),
         sample_table=config["samples"]
@@ -192,7 +192,7 @@ rule copy_config_sample_log:
         """
 
 #################################   Based on scripts/assemble.sh   #################################
-rule link_raw_data:
+rule signal_link_raw_data:
     priority: 4
     output:
         '{sn}/raw_fastq/{sn}_R{r}.fastq.gz'
@@ -201,7 +201,7 @@ rule link_raw_data:
     shell:
         'ln -s {input} {output}'
 
-rule run_raw_fastqc:
+rule signal_run_raw_fastqc:
     conda: 
         'conda_envs/trim_qc.yaml'
     output:
@@ -222,7 +222,7 @@ rule run_raw_fastqc:
         """
 
 ########################## Human Host Removal ################################
-rule raw_reads_composite_reference_bwa_map:
+rule signal_raw_reads_composite_reference_bwa_map:
     threads: 2
     conda: 
         'conda_envs/snp_mapping.yaml'
@@ -244,7 +244,7 @@ rule raw_reads_composite_reference_bwa_map:
         '{input.raw_r1} {input.raw_r2} | '
         '{params.script_path} -c {params.viral_contig_name} > {output}) 2> {log}'
 
-rule get_host_removed_reads:
+rule signal_get_host_removed_reads:
     threads: 2
     conda: 'conda_envs/snp_mapping.yaml'
     output:
@@ -266,7 +266,7 @@ rule get_host_removed_reads:
 
 ###### Based on github.com/connor-lab/ncov2019-artic-nf/blob/master/modules/illumina.nf#L124 ######
 
-rule run_trimgalore:
+rule signal_run_trimgalore:
     threads: 2
     priority: 2
     conda: 
@@ -292,7 +292,7 @@ rule run_trimgalore:
         ' -o {params.output_prefix} --cores {threads} --fastqc '
         '--paired {input.raw_r1} {input.raw_r2} 2> {log}'
 
-rule run_filtering_of_residual_adapters:
+rule signal_run_filtering_of_residual_adapters:
     threads: 2
     priority: 2
     conda: 
@@ -310,7 +310,7 @@ rule run_filtering_of_residual_adapters:
         python {params.script_path} --input_R1 {input.r1} --input_R2 {input.r2}
         """
        
-rule viral_reference_bwa_build:
+rule signal_viral_reference_bwa_build:
     conda: 
         'conda_envs/snp_mapping.yaml'
     output:
@@ -327,7 +327,7 @@ rule viral_reference_bwa_build:
         'bwa index -p {params.output_prefix} {input} >{log} 2>&1'
 
 
-rule viral_reference_bwa_map:
+rule signal_viral_reference_bwa_map:
     threads: 2
     conda: 
         'conda_envs/snp_mapping.yaml'
@@ -350,7 +350,7 @@ rule viral_reference_bwa_map:
 
 
 
-rule run_bed_primer_trim:
+rule signal_run_bed_primer_trim:
     conda: 
         'conda_envs/ivar.yaml'
     input:
@@ -380,7 +380,7 @@ rule run_bed_primer_trim:
         '{output.trimmed_mapped_bam}'
 
 
-rule run_fastqc_on_mapped_reads:
+rule signal_run_fastqc_on_mapped_reads:
     conda: 'conda_envs/trim_qc.yaml'
     output:
         r1_fastqc = '{sn}/mapped_clean_reads/{sn}_R1_fastqc.html',
@@ -399,7 +399,7 @@ rule run_fastqc_on_mapped_reads:
         fastqc -o {params.output_prefix} {input} 2> {log}
         """
 
-rule get_mapping_reads:
+rule signal_get_mapping_reads:
     priority: 2
     conda: 'conda_envs/snp_mapping.yaml'
     output:
@@ -419,7 +419,7 @@ rule get_mapping_reads:
         samtools fastq -1 {output.r1} -2 {output.r2} -s {output.s} {output.bam} 2>> {log} 
         """
 
-rule run_ivar_consensus:
+rule signal_run_ivar_consensus:
     conda: 
         'conda_envs/ivar.yaml'
     output:
@@ -441,7 +441,7 @@ rule run_ivar_consensus:
         '-m {params.ivar_min_coverage_depth} -n N -p {params.output_prefix}) '
         '2>{log}'
 
-rule index_viral_reference:
+rule signal_index_viral_reference:
     # from @jts both mpileup and ivar need a reference .fai file and will create 
     # it when it doesn't exist. 
     # When they're run in a pipe like mpileup | ivar there's a race condition 
@@ -456,7 +456,7 @@ rule index_viral_reference:
         'samtools faidx {input}'
 
     
-rule run_ivar_variants:
+rule signal_run_ivar_variants:
     conda: 
         'conda_envs/ivar.yaml'
     output:
@@ -485,7 +485,7 @@ rule run_ivar_variants:
 
 ################################   Based on scripts/breseq.sh   ####################################
 
-rule run_breseq:
+rule signal_run_breseq:
     threads: 4
     priority: 1
     conda: 'conda_envs/snp_mapping.yaml'
@@ -512,7 +512,7 @@ rule run_breseq:
 ##################  Based on scripts/hisat2.sh and scripts/coverage_stats_avg.sh  ##################
 
 
-rule coverage_depth:
+rule signal_coverage_depth:
     conda: 'conda_envs/snp_mapping.yaml'
     output:
         '{sn}/coverage/{sn}_depth.txt'
@@ -523,7 +523,7 @@ rule coverage_depth:
     shell:
         'bedtools genomecov -d -ibam {input} >{output}'
 
-rule generate_coverage_plot:
+rule signal_generate_coverage_plot:
     conda: 'conda_envs/postprocessing.yaml'
     output: 
         '{sn}/coverage/{sn}_coverage_plot.png' 
@@ -537,7 +537,7 @@ rule generate_coverage_plot:
 ################################   Based on scripts/kraken2.sh   ###################################
 
 
-rule run_kraken2:
+rule signal_run_kraken2:
     threads: 1
     conda: 'conda_envs/trim_qc.yaml'
     output:
@@ -573,7 +573,7 @@ rule run_kraken2:
 ##################################  Based on scripts/quast.sh   ####################################
 
 
-rule run_quast:
+rule signal_run_quast:
     threads: 1
     conda: 'conda_envs/assembly_qc.yaml'
     output:
