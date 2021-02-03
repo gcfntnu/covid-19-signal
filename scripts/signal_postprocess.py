@@ -11,6 +11,8 @@ import html.parser
 
 import numpy as np
 import pandas as pd
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
 long_git_id = '$Id: b158164f87c79271ddc9d1083e64e4be1fc26d8e $'

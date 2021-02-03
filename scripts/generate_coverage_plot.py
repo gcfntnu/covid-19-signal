@@ -3,7 +3,10 @@
 import sys
 import os
 import numpy as np
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
+
 
 def write_coverage_plot(depth_file, coverage_plot_name):
         if not os.path.exists(depth_file):
