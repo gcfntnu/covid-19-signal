@@ -151,6 +151,7 @@ else:
 rule signal_postprocess:
     conda: 
         'conda_envs/postprocessing.yaml'
+    singularity: 'gcfntnu/signal-postprocessing'
     params:
         sample_csv_filename = os.path.join(exec_dir, config['samples']),
         postprocess_script_path = os.path.join(exec_dir, 'scripts', 'signal_postprocess.py')
@@ -202,8 +203,8 @@ rule signal_link_raw_data:
         'ln -s {input} {output}'
 
 rule signal_run_raw_fastqc:
-    conda: 
-        'conda_envs/trim_qc.yaml'
+    conda: 'conda_envs/trim_qc.yaml'
+    singularity: 'gcfntnu/signal-trim-qc'
     output:
         r1_fastqc = '{sn}/raw_fastq/{sn}_R1_fastqc.html',
         r2_fastqc = '{sn}/raw_fastq/{sn}_R2_fastqc.html'
@@ -224,8 +225,8 @@ rule signal_run_raw_fastqc:
 ########################## Human Host Removal ################################
 rule signal_raw_reads_composite_reference_bwa_map:
     threads: 2
-    conda: 
-        'conda_envs/snp_mapping.yaml'
+    conda: 'conda_envs/snp_mapping.yaml'
+    singularity: 'gcfntnu/signal-snp-mapping'
     output:
         '{sn}/host_removal/{sn}_viral_and_nonmapping_reads.bam',
     input:
@@ -247,6 +248,7 @@ rule signal_raw_reads_composite_reference_bwa_map:
 rule signal_get_host_removed_reads:
     threads: 2
     conda: 'conda_envs/snp_mapping.yaml'
+    singularity: 'gcfntnu/signal-snp-mapping'
     output:
         r1 = '{sn}/host_removal/{sn}_R1.fastq.gz',
         r2 = '{sn}/host_removal/{sn}_R2.fastq.gz',
@@ -269,8 +271,8 @@ rule signal_get_host_removed_reads:
 rule signal_run_trimgalore:
     threads: 2
     priority: 2
-    conda: 
-        'conda_envs/trim_qc.yaml'
+    conda: 'conda_envs/trim_qc.yaml'
+    singularity: 'gcfntnu/signal-trim-qc'
     output:
         '{sn}/adapter_trimmed/{sn}_R1_val_1.fq.gz',
         '{sn}/adapter_trimmed/{sn}_R2_val_2.fq.gz',
@@ -297,6 +299,7 @@ rule signal_run_filtering_of_residual_adapters:
     priority: 2
     conda: 
         'conda_envs/snp_mapping.yaml'
+    singularity: 'gcfntnu/signal-snp-mapping'
     input:
         r1 = '{sn}/adapter_trimmed/{sn}_R1_val_1.fq.gz',
         r2 = '{sn}/adapter_trimmed/{sn}_R2_val_2.fq.gz'
@@ -313,6 +316,7 @@ rule signal_run_filtering_of_residual_adapters:
 rule signal_viral_reference_bwa_build:
     conda: 
         'conda_envs/snp_mapping.yaml'
+    singularity: 'gcfntnu/signal-snp-mapping'
     output:
         '{sn}/core/viral_reference.bwt'
     input:
@@ -329,8 +333,8 @@ rule signal_viral_reference_bwa_build:
 
 rule signal_viral_reference_bwa_map:
     threads: 2
-    conda: 
-        'conda_envs/snp_mapping.yaml'
+    conda: 'conda_envs/snp_mapping.yaml'
+    singularity: 'gcfntnu/signal-snp-mapping'
     output:
         '{sn}/core/{sn}_viral_reference.bam'
     input:
@@ -351,8 +355,8 @@ rule signal_viral_reference_bwa_map:
 
 
 rule signal_run_bed_primer_trim:
-    conda: 
-        'conda_envs/ivar.yaml'
+    conda: 'conda_envs/ivar.yaml'
+    singularity: 'gcfntnu/signal-ivar'
     input:
         "{sn}/core/{sn}_viral_reference.bam"
     output:
@@ -382,6 +386,7 @@ rule signal_run_bed_primer_trim:
 
 rule signal_run_fastqc_on_mapped_reads:
     conda: 'conda_envs/trim_qc.yaml'
+    singularity: 'gcfntnu/signal-trim-qc'
     output:
         r1_fastqc = '{sn}/mapped_clean_reads/{sn}_R1_fastqc.html',
         r2_fastqc = '{sn}/mapped_clean_reads/{sn}_R2_fastqc.html'
@@ -402,6 +407,7 @@ rule signal_run_fastqc_on_mapped_reads:
 rule signal_get_mapping_reads:
     priority: 2
     conda: 'conda_envs/snp_mapping.yaml'
+    singularity: 'gcfntnu/signal-snp-mapping'
     output:
         r1 = '{sn}/mapped_clean_reads/{sn}_R1.fastq.gz',
         r2 = '{sn}/mapped_clean_reads/{sn}_R2.fastq.gz',
@@ -420,8 +426,8 @@ rule signal_get_mapping_reads:
         """
 
 rule signal_run_ivar_consensus:
-    conda: 
-        'conda_envs/ivar.yaml'
+    conda: 'conda_envs/ivar.yaml'
+    singularity: 'gcfntnu/signal-ivar'
     output:
         '{sn}/core/{sn}.consensus.fa'
     input:
@@ -446,8 +452,8 @@ rule signal_index_viral_reference:
     # it when it doesn't exist. 
     # When they're run in a pipe like mpileup | ivar there's a race condition 
     # that causes the error
-    conda: 
-        'conda_envs/ivar.yaml'
+    conda: 'conda_envs/ivar.yaml'
+    singularity: 'gcfntnu/signal-ivar'
     output:
         os.path.join(exec_dir, config['viral_reference_genome']) + ".fai"
     input:
@@ -457,8 +463,8 @@ rule signal_index_viral_reference:
 
     
 rule signal_run_ivar_variants:
-    conda: 
-        'conda_envs/ivar.yaml'
+    conda: 'conda_envs/ivar.yaml'
+    singularity: 'gcfntnu/signal-ivar'
     output:
         '{sn}/core/{sn}_ivar_variants.tsv'
     input:
@@ -489,6 +495,7 @@ rule signal_run_breseq:
     threads: 4
     priority: 1
     conda: 'conda_envs/snp_mapping.yaml'
+    singularity: 'gcfntnu/signal-snp-mapping'
     output:
         '{sn}/breseq/{sn}_output/index.html'
     input:
@@ -514,6 +521,7 @@ rule signal_run_breseq:
 
 rule signal_coverage_depth:
     conda: 'conda_envs/snp_mapping.yaml'
+    singularity: 'gcfntnu/signal-snp-mapping'
     output:
         '{sn}/coverage/{sn}_depth.txt'
     input:
@@ -525,6 +533,7 @@ rule signal_coverage_depth:
 
 rule signal_generate_coverage_plot:
     conda: 'conda_envs/postprocessing.yaml'
+    singularity: 'gcfntnu/signal-postprocessing'
     output: 
         '{sn}/coverage/{sn}_coverage_plot.png' 
     input:
@@ -540,6 +549,7 @@ rule signal_generate_coverage_plot:
 rule signal_run_kraken2:
     threads: 1
     conda: 'conda_envs/trim_qc.yaml'
+    singularity: 'gcfntnu/signal-trim-qc'
     output:
         '{sn}/kraken2/{sn}_kraken2.out'
     input:
@@ -576,6 +586,7 @@ rule signal_run_kraken2:
 rule signal_run_quast:
     threads: 1
     conda: 'conda_envs/assembly_qc.yaml'
+    singularity: 'gcfntnu/signal-assembly-qc'
     output:
          '{sn}/quast/{sn}_quast_report.html'
     input:
